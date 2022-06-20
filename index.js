@@ -15,7 +15,7 @@ const {
 
 // Create an app instance
 const app = dialogflow({
-  debug: true
+  // debug: true
 });
 // Register handlers for Dialogflow intents
 

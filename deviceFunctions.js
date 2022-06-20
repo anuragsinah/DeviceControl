@@ -4,6 +4,7 @@ const networkCallService = require('./networkCall');
 
 const SCENE_URL = 'https://client.smartthings.com/scenes/execute?locationId=59357b01-4de5-4f4b-8c7d-9e8991f1a009';
 const STATUS_URL = 'https://client.smartthings.com/devices/status?includeUserDevices=true&excludeLocationDevices=false';
+const HEALTH_URL = 'https://client.smartthings.com/devices/health?includeUserDevices=true&excludeLocationDevices=false'
 async function turnOn(){
   var header = { 'Authorization': 'Bearer '+ authService.getToken(), 'accept': 'application/vnd.smartthings+json;v=3'};
   try {
@@ -131,31 +132,36 @@ async function setFanMode(setFanMode){
 async function getDeviceStatus(){
   var header = { 'Authorization': 'Bearer '+ authService.getToken()};
   try {
-     var res = await getRequest(STATUS_URL,header);
-     var ans = ""
-     var switchStatus = false
-     res.items.forEach(element => {
-      if(element.attributeName == "switch"){
-        if(element.value != "off"){
-          switchStatus = true
-        }
-      }
-     });
-     if(switchStatus){
+     var initialResponse = await getRequest(HEALTH_URL,header);
+     if(initialResponse.items[0].state == "ONLINE"){
+       var res = await getRequest(STATUS_URL,header);
+       var ans = ""
+       var switchStatus = false
        res.items.forEach(element => {
-        if(element.attributeName == "airConditionerMode"){
-          ans = ans + "Device is running on "+element.value+". "
-        }
-        if(element.attributeName == "temperature"){
-          ans = ans + "Outside temperature is "+element.value+". "
-        }
-        if(element.attributeName == "coolingSetpoint"){
-          ans = ans + "AC Temperature is set to "+element.value+". "
+        if(element.attributeName == "switch"){
+          if(element.value != "off"){
+            switchStatus = true
+          }
         }
        });
-       return ans;
+       if(switchStatus){
+         res.items.forEach(element => {
+          if(element.attributeName == "airConditionerMode"){
+            ans = ans + "Device is running on "+element.value+". "
+          }
+          if(element.attributeName == "temperature"){
+            ans = ans + "Outside temperature is "+element.value+". "
+          }
+          if(element.attributeName == "coolingSetpoint"){
+            ans = ans + "AC Temperature is set to "+element.value+". "
+          }
+         });
+         return ans;
+       } else {
+         return "Your device is off."
+       }
      } else {
-       return "Your device is off."
+       return "Your device is offline."
      }
   } catch (e) {
      console.log(e);
