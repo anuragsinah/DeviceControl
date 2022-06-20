@@ -125,6 +125,7 @@ function startKeepAlive(){
     .end(function(res) {
       if (res.error) {
         console.log('error in pinging') ;
+        console.log(res.error);
       }
       else {
         console.log("Pinging done with response - "+ res.raw_body);
