@@ -130,10 +130,11 @@ async function setFanMode(setFanMode){
 }
 
 async function getDeviceStatus(){
-  var header = { 'Authorization': 'Bearer '+ authService.getToken()};
+  var header = { 'Authorization': 'Bearer '+ authService.getToken(), 'accept': 'application/vnd.smartthings+json;v=4'};
   try {
      var initialResponse = await getRequest(HEALTH_URL,header);
      if(initialResponse.items[0].state == "ONLINE"){
+       var header = { 'Authorization': 'Bearer '+ authService.getToken()};
        var res = await getRequest(STATUS_URL,header);
        var ans = ""
        var switchStatus = false
