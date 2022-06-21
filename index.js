@@ -9,102 +9,118 @@ var PORT = process.env.PORT || 5000;
 var keepAliveTimeId;
 
 const SORRY_DIALOGUE = 'Sorry not able to complete request';
-const {
-  dialogflow
-} = require('actions-on-google')
+const { conversation } = require('@assistant/conversation');
 
 // Create an app instance
-const app = dialogflow({
-  // debug: true
+const app = conversation({
+  debug: true
 });
 // Register handlers for Dialogflow intents
 
-app.intent('actions.intent.MAIN', conv => {
-  conv.close('Hi, how is it going?')
+app.handle('actions.intent.MAIN', conv => {
+  conv.add('Hi, how is it going?')
 })
 
-app.intent('Default Welcome Intent', async conv => {
-  conv.ask('What do you want to do?')
+app.handle('Default_Welcome_Intent', async conv => {
+  conv.add('What do you want to do?')
 })
 
-app.intent('Turn On', async conv => {
+app.handle('Turn_On', async conv => {
   try{
     var response = await deviceFunctionsService.turnOn()
-    conv.close(response)
+    conv.add(response)
   }catch(e){
-    conv.close(SORRY_DIALOGUE)
+    console.log(e);
+    conv.add(SORRY_DIALOGUE)
   }
 })
 
-app.intent('Turn Off', async conv => {
+app.handle('Turn_Off', async conv => {
   try{
     var response = await deviceFunctionsService.turnOff()
-    conv.close(response)
+    conv.add(response)
   }catch(e){
-    conv.close(SORRY_DIALOGUE)
+    console.log(e);
+    conv.add(SORRY_DIALOGUE)
   }
 })
 
-app.intent('Set Temperature', async conv => {
+app.handle('Set_Temperature', async conv => {
   try{
-    console.log(conv.parameters.thermostatCoolingSetpoint);
-    var setTemperature = conv.parameters.thermostatCoolingSetpoint;
+    console.log(conv.intent.params.thermostatCoolingSetpoint.resolved);
+    var setTemperature =conv.intent.params.thermostatCoolingSetpoint.resolved;
     if(setTemperature>30 || setTemperature <16){
-      conv.ask('Temperature should be between 16 to 30')
+      conv.add('Temperature should be between 16 to 30')
     }else{
       var response = await deviceFunctionsService.setTemperature(setTemperature)
-      conv.close(response)
+      conv.add(response)
     }
   }catch(e){
-    conv.close(SORRY_DIALOGUE)
+    console.log(e);
+    if(e instanceof TypeError){
+      conv.add('Sorry, temperature should be between 16 to 30')
+    } else{
+      conv.add(SORRY_DIALOGUE)
+    }
   }
 })
 
-app.intent('Air Condition Mode', async conv => {
+app.handle('Air_Condition_Mode', async conv => {
   try{
-    console.log(conv.parameters.airconditionermode);
-    var setMode = conv.parameters.airconditionermode;
+    console.log(conv.intent.params.airconditionermode.resolved);
+    var setMode = conv.intent.params.airconditionermode.resolved;
     if(setMode == "cool" || setMode == "dry" || setMode == "auto" || setMode == "wind"){
       var response = await deviceFunctionsService.setMode(setMode)
-      conv.close(response)
+      conv.add(response)
     }else{
-      conv.ask('What mode you want to set? Auto, cool, wind or dry')
+      conv.add('Device mode can only be set to Auto, low, medium, high or turbo')
     }
   }catch(e){
-    conv.close(SORRY_DIALOGUE)
+    console.log(e);
+    if(e instanceof TypeError){
+      conv.add('Device mode can only be set to Auto, low, medium, high or turbo')
+    } else{
+      conv.add(SORRY_DIALOGUE)
+    }
   }
 })
 
-app.intent('Air Condition Fan Mode', async conv => {
+app.handle('Air_Condition_Fan_Mode', async conv => {
   try{
-    console.log(conv.parameters.airconditionerfanmode);
-    var setFanMode = conv.parameters.airconditionerfanmode;
+    console.log(conv.intent.params.airconditionerfanmode.resolved);
+    var setFanMode = conv.intent.params.airconditionerfanmode.resolved;
     if(setFanMode == "auto" || setFanMode == "low" || setFanMode == "medium" || setFanMode == "high" || setFanMode == "turbo"){
       var response = await deviceFunctionsService.setFanMode(setFanMode)
-      conv.close(response)
+      conv.add(response)
     }else{
-      conv.ask('What mode you want to set? Auto, low, medium, high or turbo')
+      conv.add('Fan mode can only be set to Auto, low, medium, high or turbo')
     }
   }catch(e){
-    conv.close(SORRY_DIALOGUE)
+    console.log(e);
+    if(e instanceof TypeError){
+      conv.add('Fan mode can only be set to Auto, low, medium, high or turbo')
+    } else{
+      conv.add(SORRY_DIALOGUE)
+    }
   }
 })
 
-app.intent('Air Condition Status', async conv => {
+app.handle('Air_Condition_Status', async conv => {
   try{
       var response = await deviceFunctionsService.getDeviceStatus()
-      conv.close(response)
+      conv.add(response)
   }catch(e){
-    conv.close(SORRY_DIALOGUE)
+    console.log(e);
+    conv.add(SORRY_DIALOGUE)
   }
 })
 
-app.intent('Cancel', conv => {
-  conv.close('Okay, have a nice day')
+app.handle('Cancel', conv => {
+  conv.add('Okay, have a nice day')
 })
 
-app.intent('no_input', (conv) => {
-    conv.close('Hi, how is it going?')
+app.handle('no_input', (conv) => {
+    conv.add('Hi, how is it going?')
 });
 
 var exp = new express() ;
